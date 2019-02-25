@@ -58,9 +58,9 @@ object Library extends Schema {
     oneToManyRelation(authors, books)
       .via((a, b) => a.id === b.authorId)
 
-  override def applyDefaultForeignKeyPolicy(f: ForeignKeyDeclaration) =
-    f.constrainReference
-  authorsToBooks.foreignKeyDeclaration.constrainReference(onDelete cascade)
+  // override def applyDefaultForeignKeyPolicy(f: ForeignKeyDeclaration) =
+  //   f.constrainReference
+  // authorsToBooks.foreignKeyDeclaration.constrainReference(onDelete cascade)
 }
 
 import Library.{authors,books}
@@ -75,6 +75,7 @@ object Hello extends Greeting with App {
       new MySQLAdapter))
 
   transaction {
+    Session.currentSession.setLogger(println)
     Library.create
     Library.printDdl
     authors.insert(new Author("Michel", "Folco", Some("folco@example.com")))

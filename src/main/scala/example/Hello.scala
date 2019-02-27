@@ -8,7 +8,6 @@ import java.util.Date
 import org.squeryl.{
   ForeignKeyDeclaration,
   KeyedEntity,
-  KeyedEntityDef,
   Schema,
   Session,
   SessionFactory
@@ -21,8 +20,7 @@ import os.{Path,RelPath}
 
 object FileType extends Enumeration {
   type FileType = Value
-  val File = Value(0, "File")
-  val Directory = Value(1, "Directory")
+  val File, Directory = Value
 }
 
 
@@ -30,14 +28,14 @@ class File(
   val path: String,
   val filename: String,
   val fileType: FileType.FileType,
-  val parent: Long,
+  val parent: Option[Long],
   val size: Long,
   val mtime: Timestamp,
   val atime: Timestamp,
   val ctime: Timestamp,
 ) extends KeyedEntity[Long] {
   def this() = this("", "",
-    FileType.File, 0, 0,
+    FileType.File, None, 0,
     new Timestamp(0),
     new Timestamp(0),
     new Timestamp(0))
@@ -49,7 +47,7 @@ class File(
 object FileDb extends Schema {
   val files = table[File]
   val filesToFiles = oneToManyRelation(files, files)
-    .via((o, m) => o.id === m.parent)
+    .via((o, m) => o.id === m.parent.get)
 }
 
 class Author(
@@ -126,6 +124,10 @@ object Hello extends Greeting with App {
   //   if (p.isAbsolute) Path(p) else RelPath(p)
   // }
 
+  def totype(ft: os.FileType) = ft match {
+    case os.FileType.Dir => FileType.Directory
+    case _ => FileType.File
+  }
 
   def walk(str: String) =
     for (path <- os.walk.stream(
